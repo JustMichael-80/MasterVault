@@ -74,3 +74,57 @@ Treat this section as tunable, not gospel. If you copy this template into a smal
 - Not a memory system. It doesn't persist anything on its own — it's a convention for organizing files you maintain yourself.
 - Not a guarantee of freshness. It can't stop `CONTEXT.md` from going stale. It only guarantees that staleness gets flagged instead of silently trusted.
 - Not tied to any particular LLM tool. The protocol just assumes something capable of reading files and checking a modified timestamp — adapt the mechanics to whatever environment you're in.
+
+---
+
+## Part two: the skills stack + Inbox Ingestor
+
+Everything above is the orientation protocol — how an LLM gets up to speed on *your* project. This second half is a separate, complementary layer: a curated set of Claude skills, already inside this repo, plus one original tool.
+
+```
+MasterVault/
+├── CONSTITUTION.md, CONTEXT.md, _orientation.md   ← the protocol (see above)
+├── overlays/                                       ← domain-specific constitution extensions
+├── skills/                                         ← vendored skills, pulled in via git subtree
+├── automation/
+│   └── inbox-ingestor/                             ← original: PDF→markdown watcher
+├── install.sh                                       ← symlinks skills/ into ~/.claude/skills/
+└── Attributions/ATTRIBUTIONS.md                     ← every vendored skill, author, license
+```
+
+### What's vendored
+
+Every skill in `skills/` was pulled in via `git subtree`, not submodule — meaning one `git clone` of this repo gets you everything, no second init step. See `Attributions/ATTRIBUTIONS.md` for the full list, authors, and licenses. Nothing is vendored here without its original license shipping alongside it.
+
+### Setup
+
+```bash
+git clone https://github.com/JustMichael-80/MasterVault.git
+cd MasterVault
+./install.sh
+```
+`install.sh` symlinks every skill folder in `skills/` into `~/.claude/skills/`. Claude Code and Desktop discover them from there automatically — no re-downloading, no re-priming each session.
+
+Verify with:
+```bash
+ls -la ~/.claude/skills
+```
+Every entry should be a symlink pointing back into this repo's `skills/` folder.
+
+### Inbox Ingestor
+
+A background watcher for anyone running an Obsidian-style vault (or any folder-based knowledge base) alongside Claude. Drop a PDF into an `_Inbox/` folder; it becomes clean markdown automatically, sitting right next to the original.
+
+- Runs as a persistent local service (`launchd` on macOS, adaptable to `systemd` on Linux) — not a script you have to remember to run.
+- Uses `pymupdf4llm` for extraction — local, no API calls, no network dependency.
+- Does **one job only**: conversion. It does not file, move, or organize anything — that's left to you, or to Claude with vault access, on purpose. Filing decisions need judgment; conversion doesn't.
+
+Setup instructions live in `automation/inbox-ingestor/README.md`.
+
+### Why symlinks, not copies, for the skills layer
+
+Skills only need to exist once. Symlinking into `~/.claude/skills/` means updates to a vendored skill (`git subtree pull`) propagate without re-linking, and this repo stays the single source of truth for every skill you've collected.
+
+### Contributing a skill
+
+Pull it in with `git subtree add --prefix=skills/[name] [repo-url] main --squash`, add a row to `Attributions/ATTRIBUTIONS.md` with author + license + link, and confirm the source repo's actual license before opening a PR — don't assume MIT.
