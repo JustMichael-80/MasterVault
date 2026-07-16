@@ -137,7 +137,7 @@ Every entry should be a symlink pointing back into this repo's `skills/` folder.
 
 A background watcher for anyone running an Obsidian-style vault (or any folder-based knowledge base) alongside Claude. Drop a PDF into an `_Inbox/` folder; it gets converted to markdown alongside the original.
 
-**Known limits (v1.2):** it handles file-creation events only, so PDFs that arrive by rename/atomic-move — which is how many sync clients and browsers write files — may not be picked up until the next restart. It waits a fixed 2s for copies to settle, which large or network-copied files can exceed. A failed conversion is logged once and not retried. If a `.md` of the same name already exists it skips unconditionally, so replacing a PDF leaves the old markdown in place. Extraction quality depends on the document; scanned PDFs without OCR produce little. Hardening this is the main open work — see the roadmap below.
+**Known limits (v1.1):** it handles file-creation events only, so PDFs that arrive by rename/atomic-move — which is how many sync clients and browsers write files — may not be picked up until the next restart. It waits a fixed 2s for copies to settle, which large or network-copied files can exceed. A failed conversion is logged once and not retried. If a `.md` of the same name already exists it skips unconditionally, so replacing a PDF leaves the old markdown in place. Extraction quality depends on the document; scanned PDFs without OCR produce little. Hardening this is the main open work — see the roadmap below.
 
 - Runs as a persistent local service (`launchd` on macOS, adaptable to `systemd` on Linux) — not a script you have to remember to run.
 - Uses `pymupdf4llm` for extraction — local, no API calls, no network dependency.
@@ -158,11 +158,11 @@ Copy it into `skills/[name]/` with its LICENSE file intact, add a row to `Attrib
 ## Known limitations and roadmap
 
 This repo was independently audited in July 2026 and the findings were, in the
-main, correct. v1.2 fixed the defects that could damage a user's machine or
+main, correct. v1.1 fixed the defects that could damage a user's machine or
 misrepresent what's here. What remains is tracked honestly rather than papered
 over:
 
-**Fixed in v1.2**
+**Fixed in v1.1**
 - Installer wrote self-referential symlinks into the vendored source tree on any
   second run, creating filesystem loops and dirtying the checkout. Fixed, with a
   regression test that fails against the old version.
@@ -190,6 +190,6 @@ over:
 
 ## Credit
 
-The July 2026 audit that prompted v1.2 was thorough and specific, and this repo
+The July 2026 audit that prompted v1.1 was thorough and specific, and this repo
 is better for it. Finding a real defect in someone's work and writing it up
 clearly is a favor, not an attack.
