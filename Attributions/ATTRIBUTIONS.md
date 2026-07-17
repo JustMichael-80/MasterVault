@@ -1,29 +1,41 @@
 # Attributions
 
-MasterVault vendors community and first-party Claude skills. Every skill below ships in its own subfolder under `skills/` with its original `LICENSE` file intact. Nothing here is relicensed, rebranded, or presented as original work of this repo unless explicitly marked "Original" below.
+Every third-party skill vendored into this repo, with its author, license, and
+the license file that ships alongside it. This table is generated from what is
+actually committed under `skills/` — if something isn't in the tree, it isn't
+listed here.
 
-If you add a skill to your own fork, add a row here — repo link, author, license — and make sure the original LICENSE file travels with it into its subfolder.
+Nothing here is relicensed or presented as original work of this repo.
 
-| Skill / Repo | Author | License | Source |
-|---|---|---|---|
-| skill-creator, mcp-builder, webapp-testing, web-artifacts-builder, brand-guidelines (and others) | Anthropic | MIT/Apache (see repo) | [github.com/anthropics/skills](https://github.com/anthropics/skills) |
-| Superpowers (14 skills: TDD, systematic-debugging, brainstorming, code review workflow, etc.) | Jesse Vincent / Prime Radiant | MIT | [github.com/obra/superpowers](https://github.com/obra/superpowers) |
-| Context7 (live library docs lookup) | Upstash | Check repo LICENSE before vendoring | [github.com/upstash/context7](https://github.com/upstash/context7) |
-| stop-slop (anti-AI-writing-pattern skill) | Hardik Pandya | MIT | [github.com/hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) |
-| taste-skill (design taste / frontend skills) | Leonxlnx | Check repo LICENSE before vendoring | [github.com/Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) |
-| ui-ux-pro-max-skill (design intelligence) | nextlevelbuilder | Check repo LICENSE before vendoring | [github.com/nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) |
-| marketingskills (CRO, copywriting, SEO, A/B testing, etc.) | Corey Haines | Check repo LICENSE before vendoring | [github.com/coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills) |
-| social-media-skills (voice-builder, post-writer, etc.) | Charlie Hills | MIT | [github.com/charlie947/social-media-skills](https://github.com/charlie947/social-media-skills) |
+## Vendored skills
 
-**Original work in this repo:**
+| Source | Author | License | License file in tree | Skills |
+|---|---|---|---|---|
+| [anthropics/skills](https://github.com/anthropics/skills) | Anthropic | Apache-2.0 | per-skill `LICENSE.txt` | brand-guidelines, mcp-builder, skill-creator, web-artifacts-builder, webapp-testing |
+| [obra/superpowers](https://github.com/obra/superpowers) | Jesse Vincent | MIT | `skills/superpowers/LICENSE` | brainstorming, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, writing-plans, writing-skills |
+| [upstash/context7](https://github.com/upstash/context7) | Upstash, Inc. | MIT | `skills/context7/LICENSE` | context7-cli, context7-mcp, find-docs |
+| [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | Hardik Pandya | MIT | `skills/stop-slop/LICENSE` | stop-slop |
 
-| Component | Author | License |
-|---|---|---|
-| Inbox Ingestor (PDF→markdown watcher) | [Your name] | MIT |
-| MasterVault structure, `install.sh`, README/ATTRIBUTIONS template | [Your name] | MIT |
+23 skills from 4 sources.
 
----
+**Note on Anthropic skills:** the five vendored here each ship an Apache-2.0
+`LICENSE.txt`. Anthropic's skills repository is not uniformly Apache-2.0 —
+some skills in that repo (the document-editing ones) are source-available
+rather than open source. If you vendor additional Anthropic skills, check the
+license that ships with each one rather than assuming this row covers it.
 
-### A note on the entries marked "Check repo LICENSE before vendoring"
+## Original work in this repo
 
-I flagged these because I haven't personally verified their license files — before you vendor them into a public repo, open each one and confirm. Most tools in this space default to MIT, but confirming beats assuming, especially once you're redistributing rather than just using locally. Update this table with the confirmed license once checked.
+| Component | License |
+|---|---|
+| Inbox Ingestor (`automation/inbox-ingestor/`) | MIT |
+| MasterVault structure, `install.sh`, `tests/`, docs | MIT |
+
+Copyright holder for the above: see `LICENSE` at the repo root.
+
+## Adding a skill
+
+1. Copy it into `skills/<name>/`, keeping its original LICENSE file.
+2. Confirm the license by opening the file — don't assume MIT.
+3. Add a row above with the author, confirmed license, and the license file path.
+4. Run `./tests/test_install.sh` to confirm no name collisions.

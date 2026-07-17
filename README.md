@@ -72,7 +72,7 @@ Treat this section as tunable, not gospel. If you copy this template into a smal
 ## What this template is not
 
 - Not a memory system. It doesn't persist anything on its own — it's a convention for organizing files you maintain yourself.
-- Not a guarantee of freshness. It can't stop `CONTEXT.md` from going stale. It only guarantees that staleness gets flagged instead of silently trusted.
+- Not a guarantee of freshness. It can't stop `CONTEXT.md` from going stale, and it does not detect stale *content* — it checks one file's modified timestamp. Editing a single line resets that clock for every entry in the file, and copying or restoring the file can reset it without anything being reviewed. Treat it as a coarse file-age prompt to re-read, not a guarantee that stale facts get caught.
 - Not tied to any particular LLM tool. The protocol just assumes something capable of reading files and checking a modified timestamp — adapt the mechanics to whatever environment you're in.
 
 ---
@@ -85,35 +85,83 @@ Everything above is the orientation protocol — how an LLM gets up to speed on 
 MasterVault/
 ├── CONSTITUTION.md, CONTEXT.md, _orientation.md   ← the protocol (see above)
 ├── overlays/                                       ← domain-specific constitution extensions
-├── skills/                                         ← vendored skills, pulled in via git subtree
+├── skills/                                         ← vendored skills (copied snapshots)
 ├── automation/
 │   └── inbox-ingestor/                             ← original: PDF→markdown watcher
-├── install.sh                                       ← symlinks skills/ into ~/.claude/skills/
-└── Attributions/ATTRIBUTIONS.md                     ← every vendored skill, author, license
+├── install.sh                                      ← links skills/ into ~/.claude/skills/
+├── tests/                                          ← installer regression suite + layout fixtures
+└── Attributions/ATTRIBUTIONS.md                    ← every vendored skill, author, license
 ```
 
 ### What's vendored
 
-Every skill in `skills/` was pulled in via `git subtree`, not submodule — meaning one `git clone` of this repo gets you everything, no second init step. See `Attributions/ATTRIBUTIONS.md` for the full list, authors, and licenses. Nothing is vendored here without its original license shipping alongside it.
+Every skill in `skills/` is a **copied snapshot** of its upstream repo, committed directly here — not a submodule, not a subtree. One `git clone` gets you everything, no second init step.
+
+Because they're snapshots, there is no automatic update path: refreshing a skill means re-copying it from upstream and committing the result. The snapshots were taken July 2026; upstream has moved on since, and this repo does not track exact upstream commits. If you need a specific upstream version, go to the source repo rather than trusting this copy.
+
+See `Attributions/ATTRIBUTIONS.md` for the full list, authors, and confirmed licenses. Every vendored source ships its original license file.
 
 ### Setup
 
 ```bash
 git clone https://github.com/JustMichael-80/MasterVault.git
 cd MasterVault
-./install.sh
 ```
-`install.sh` symlinks every skill folder in `skills/` into `~/.claude/skills/`. Claude Code and Desktop discover them from there automatically — no re-downloading, no re-priming each session.
 
-Verify with:
+`install.sh` does **not** install anything by default. Start here:
+
 ```bash
-ls -la ~/.claude/skills
+./install.sh --list      # what's in the repo, and which skills ship executable scripts
+./install.sh --dry-run   # what would be linked, without touching anything
 ```
-Every entry should be a symlink pointing back into this repo's `skills/` folder.
+
+Then link what you actually want:
+
+```bash
+./install.sh --skill systematic-debugging
+./install.sh --all       # if you've reviewed them and want the lot
+```
+
+Re-running is safe: the installer replaces only symlinks it can verify, refuses to overwrite real files or directories, and never writes inside `skills/`.
+
+Then confirm it actually worked:
+
+```bash
+./install.sh --verify
+```
+
+`--verify` is the one that matters. Documentation can claim a skill is
+installed; only `--verify` checks. It reports missing links, stale links
+pointing somewhere else, real files blocking a link, and orphans (linked, but
+gone from the source), and exits non-zero if anything is wrong. Run it after any
+change, and any time you're about to trust a claim about what's installed.
+
+It also works against a skills collection kept somewhere else:
+
+```bash
+./install.sh --from ~/path/to/my-skills --verify
+./install.sh --from ~/path/to/my-skills --all
+```
+
+**Read this before `--all`:** these are third-party skills. A skill is instructions Claude follows, and many ship shell/Python scripts it can execute. `--list` flags which. Anthropic's own guidance is to audit less-trusted skills and their bundled scripts before installing. I vendored these because I use them; that is not a security review, and you should not treat it as one. Link what you've looked at.
+
+**Claude Code** discovers personal skills at `~/.claude/skills/` and follows directory symlinks as of **v2.1.203+**. Claude Desktop and claude.ai have their own skill mechanisms — the symlink approach here is verified for Claude Code only.
+
+**A note on layouts.** Skill repos don't agree on where skills live. The
+installer handles four arrangements: `<repo>/skills/<name>/`,
+`<repo>/.claude/skills/<name>/` (a dotfolder), `<repo>/SKILL.md` for
+single-skill repos, and `<repo>/<name>/SKILL.md` for a curated folder. It also
+skips vendor-internal duplicates — repos that ship the same skill several times
+under `plugins/`, `packages/`, or `cli/assets/` for different editors. Miss
+either and the failure is silent: the installer reports success having linked
+nothing, which is how a repo can sit "installed" for days while none of its
+skills are actually available. `tests/fixtures/` has an example of each.
 
 ### Inbox Ingestor
 
-A background watcher for anyone running an Obsidian-style vault (or any folder-based knowledge base) alongside Claude. Drop a PDF into an `_Inbox/` folder; it becomes clean markdown automatically, sitting right next to the original.
+A background watcher for anyone running an Obsidian-style vault (or any folder-based knowledge base) alongside Claude. Drop a PDF into an `_Inbox/` folder; it gets converted to markdown alongside the original.
+
+**Known limits (current):** it handles file-creation events only, so PDFs that arrive by rename/atomic-move — which is how many sync clients and browsers write files — may not be picked up until the next restart. It waits a fixed 2s for copies to settle, which large or network-copied files can exceed. A failed conversion is logged once and not retried. If a `.md` of the same name already exists it skips unconditionally, so replacing a PDF leaves the old markdown in place. Extraction quality depends on the document; scanned PDFs without OCR produce little. Hardening this is the main open work — see the roadmap below.
 
 - Runs as a persistent local service (`launchd` on macOS, adaptable to `systemd` on Linux) — not a script you have to remember to run.
 - Uses `pymupdf4llm` for extraction — local, no API calls, no network dependency.
@@ -123,8 +171,59 @@ Setup instructions live in `automation/inbox-ingestor/README.md`.
 
 ### Why symlinks, not copies, for the skills layer
 
-Skills only need to exist once. Symlinking into `~/.claude/skills/` means updates to a vendored skill (`git subtree pull`) propagate without re-linking, and this repo stays the single source of truth for every skill you've collected.
+Skills only need to exist once. Symlinking into `~/.claude/skills/` means re-copying a skill from upstream propagates without re-linking, and this repo stays the one place your collected skills live.
 
 ### Contributing a skill
 
-Pull it in with `git subtree add --prefix=skills/[name] [repo-url] main --squash`, add a row to `Attributions/ATTRIBUTIONS.md` with author + license + link, and confirm the source repo's actual license before opening a PR — don't assume MIT.
+Copy it into `skills/[name]/` with its LICENSE file intact, add a row to `Attributions/ATTRIBUTIONS.md` with author + confirmed license + link, and run `./tests/test_install.sh`. Open the license file and confirm it — don't assume MIT.
+
+---
+
+## Known limitations and roadmap
+
+This repo was independently audited in July 2026 and the findings were, in the
+main, correct. v1.1 fixed the defects that could damage a user's machine or
+misrepresent what's here. What remains is tracked honestly rather than papered
+over:
+
+**Fixed in v1.1**
+- Installer wrote self-referential symlinks into the vendored source tree on any
+  second run, creating filesystem loops and dirtying the checkout. Fixed, with a
+  regression test that fails against v1.0.
+- Installer linked all 23 skills globally with no review step. Now installs
+  nothing by default; `--list`, `--dry-run`, and `--skill` added.
+- Installer only recognized two of the four skill-repo layouts in the wild. It
+  silently found nothing in repos nesting skills under `.claude/skills/`, and
+  collided on repos shipping vendor-internal duplicate copies. Both now handled,
+  with fixtures covering all four — the first pass at the test suite passed
+  against the broken discovery, because this repo's own tree doesn't exercise it.
+- Added `--verify`: compares what's linked against what actually exists, and
+  exits non-zero on missing/stale/orphaned links. Nothing in the project could
+  previously answer "is this actually installed?"
+- Added `--from DIR` so the installer can manage a skills collection kept
+  outside this repo.
+- README claimed `git subtree` provenance the history doesn't support. Now
+  described accurately as copied snapshots.
+- ATTRIBUTIONS listed four projects that aren't in the tree, left placeholder
+  author fields, and marked an already-vendored license unverified. Rebuilt from
+  the actual tree with confirmed licenses.
+- Freshness and Claude Desktop claims narrowed to what's actually verified.
+
+**Still open**
+- **Inbox Ingestor hardening** — atomic writes, `on_moved` handling, stability
+  polling instead of a fixed sleep, bounded retries, regenerating stale markdown,
+  resource limits. Limits are documented above; the fix is the next work item.
+- **Provenance manifest** — per-skill upstream commit SHA and content hash, so
+  vendored copies can be verified against their source.
+- **CI** — the installer suite (23 tests) runs locally; it should run on every
+  push, on Linux and macOS.
+- **Dependency pinning** — the watcher asks for unpinned `pymupdf4llm` and
+  `watchdog`.
+- **Entry-level freshness** — per-entry `verified_at` metadata would make the
+  staleness check mean what the README originally implied.
+
+## Credit
+
+The July 2026 audit that prompted v1.1 was thorough and specific, and this repo
+is better for it. Finding a real defect in someone's work and writing it up
+clearly is a favor, not an attack.
