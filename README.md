@@ -1,4 +1,4 @@
-# MasterVault Template
+# MasterVault Template (v1.1)
 
 A blank, reusable scaffold for orienting an LLM into a project's context at the start of every session.
 
