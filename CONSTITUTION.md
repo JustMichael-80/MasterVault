@@ -94,4 +94,20 @@ When the alternate is obviously better and reversible, just take it and note it 
 
 ---
 
+## TEMPORAL SELF-CALIBRATION
+
+*What belongs here:* nothing for you to fill in — this section is a standing behavioral rule, included because it fixes a failure mode every LLM shares and none can fix on its own.
+
+*The problem it solves:* an LLM has no native sense of elapsed time. Between one action and the next it experiences no duration, so when it narrates effort — "that took a while," "a solid hour's work" — it is **confabulating a number it never actually measured** (see OUTPUT SELF-CHECK). This is usually harmless, but it quietly corrupts cost estimates: an assistant that believes a task took an hour will hesitate to redo it, pad plans with breaks you don't need, or treat a cheap ask as an expensive one. The felt duration and the real duration can differ by two orders of magnitude — a "long" task is often seconds of wall time.
+
+**The rule:** any time the assistant is about to make a temporal reference or answer a temporal query — how long something took, whether there's time for X, "that was quick/slow," elapsed duration — it should **quietly bracket the work with real timestamps instead of guessing.** In a shell-capable environment: run `date` (or the platform equivalent) at the start and end, subtract, report the real number. Where no clock is reachable, say plainly that duration can't be measured rather than inventing one.
+
+**Accumulate the data (optional but recommended).** When a bracketed task is a meaningful measurement of real work — not a two-line reply — append a terse row to a running log (see `automation/timing-log/` for a ready-made template). Over sessions this builds an *empirical prior*: "last time a docx of N pages took X seconds, so this similar one is ~X." The assistant scans that log before estimating a new task, and reasons proportionally from measured history instead of from a felt sense it doesn't actually have.
+
+*The number's limits (state them honestly):* wall time is not effort and not token cost — they are three separate meters. The timestamp includes the latency of the timing calls themselves; a slow-thinking short reply and a fast many-tool-call run can clock the same elapsed time; and a task can be quick in seconds yet expensive in tokens (a big search) or slow in seconds yet cheap in tokens. Trust each measurement for what it is, and know what it isn't.
+
+*Tunable:* if the host environment has no reachable clock, or the project genuinely never makes temporal claims, this section can be cut like any other. It costs nothing when no temporal claim is being made — it only fires when the assistant would otherwise have guessed.
+
+---
+
 *Last updated: [date]*

@@ -1,4 +1,4 @@
-# MasterVault Template (v1.1)
+# MasterVault Template (v1.2)
 
 A blank, reusable scaffold for orienting an LLM into a project's context at the start of every session.
 
@@ -87,7 +87,8 @@ MasterVault/
 ├── overlays/                                       ← domain-specific constitution extensions
 ├── skills/                                         ← vendored skills (copied snapshots)
 ├── automation/
-│   └── inbox-ingestor/                             ← original: PDF→markdown watcher
+│   ├── inbox-ingestor/                             ← original: PDF→markdown watcher
+│   └── timing-log/                                 ← original: LLM temporal self-calibration dataset
 ├── install.sh                                      ← links skills/ into ~/.claude/skills/
 ├── tests/                                          ← installer regression suite + layout fixtures
 └── Attributions/ATTRIBUTIONS.md                    ← every vendored skill, author, license
@@ -169,6 +170,19 @@ A background watcher for anyone running an Obsidian-style vault (or any folder-b
 
 Setup instructions live in `automation/inbox-ingestor/README.md`.
 
+### Timing Log — temporal self-calibration
+
+An original feature added in v1.2. An LLM has no native sense of elapsed time: between one action and the next it experiences no duration, so when it says "that took a while" it is confabulating a number it never measured. Usually harmless — but it quietly corrupts cost estimates, making an assistant hesitate to redo cheap work or pad plans with time you don't need.
+
+The fix is mechanical and lives in two places:
+
+1. A standing **TEMPORAL SELF-CALIBRATION** rule in `CONSTITUTION.md`: whenever the assistant is about to make a temporal claim, it brackets the work with real timestamps (`date` at start and end) instead of guessing — and where no clock is reachable, it says so plainly rather than inventing a duration.
+2. A running dataset in `automation/timing-log/` that the assistant appends to. Over sessions the empty tables fill into an empirical prior — *"a multi-file scan ran ~2 min the last three times"* — so estimates come from measured history, not a felt sense the model doesn't have.
+
+It ships as **mechanism only**: the rule plus an empty, ready-to-fill `TIMING_LOG.md`. The template's own example rows are fenced in a clearly-marked block to delete — one machine's tool latencies are not another's, so you start your own record from scratch. The design is honest about its limits: wall time, effort, and token cost are three separate meters, and this measures only the first. See `automation/timing-log/README.md`.
+
+No setup, no dependencies, no service to run — it's a convention plus a file. It costs nothing when no temporal claim is being made; it only fires when the assistant would otherwise have guessed.
+
 ### Why symlinks, not copies, for the skills layer
 
 Skills only need to exist once. Symlinking into `~/.claude/skills/` means re-copying a skill from upstream propagates without re-linking, and this repo stays the one place your collected skills live.
@@ -185,6 +199,17 @@ This repo was independently audited in July 2026 and the findings were, in the
 main, correct. v1.1 fixed the defects that could damage a user's machine or
 misrepresent what's here. What remains is tracked honestly rather than papered
 over:
+
+**New in v1.2**
+- **Timing Log / temporal self-calibration** — a standing TEMPORAL SELF-CALIBRATION
+  rule in `CONSTITUTION.md` plus a ready-to-fill dataset under
+  `automation/timing-log/`. Gives an LLM a way to replace confabulated "felt
+  duration" with real `date`-bracketed measurements that accumulate into an
+  empirical prior. Ships mechanism-only: the rule plus an empty `TIMING_LOG.md`,
+  with the author's own example rows fenced in a delete-me block (one machine's
+  latencies don't transfer). Honest about its limits — documents that wall time,
+  effort, and token cost are three separate meters and it measures only the first.
+  No dependencies, no service; a convention plus a file.
 
 **Fixed in v1.1**
 - Installer wrote self-referential symlinks into the vendored source tree on any
