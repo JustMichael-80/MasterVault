@@ -162,7 +162,7 @@ skills are actually available. `tests/fixtures/` has an example of each.
 
 A background watcher for anyone running an Obsidian-style vault (or any folder-based knowledge base) alongside Claude. Drop a PDF into an `_Inbox/` folder; it gets converted to markdown alongside the original.
 
-**Known limits (current):** it handles file-creation events only, so PDFs that arrive by rename/atomic-move — which is how many sync clients and browsers write files — may not be picked up until the next restart. It waits a fixed 2s for copies to settle, which large or network-copied files can exceed. A failed conversion is logged once and not retried. If a `.md` of the same name already exists it skips unconditionally, so replacing a PDF leaves the old markdown in place. Extraction quality depends on the document; scanned PDFs without OCR produce little. Hardening this is the main open work — see the roadmap below.
+**Known limits (current):** it handles both file-creation and rename/atomic-move events (`on_moved`), and waits for size+mtime to stabilize across consecutive polls rather than a fixed sleep, so slow or network-copied files aren't cut off early. A failed conversion gets a bounded retry with backoff and a durable `.failed` sidecar rather than a single silent log line. A source-hash sidecar means a replaced PDF (same name, new content) re-triggers conversion instead of being skipped. Not yet bounded: there's no limit on PDF size, memory use, or how many conversions can run concurrently. Extraction quality also still depends on the document; scanned PDFs without OCR produce little.
 
 - Runs as a persistent local service (`launchd` on macOS, adaptable to `systemd` on Linux) — not a script you have to remember to run.
 - Uses `pymupdf4llm` for extraction — local, no API calls, no network dependency.
@@ -235,9 +235,10 @@ over:
 - Freshness and Claude Desktop claims narrowed to what's actually verified.
 
 **Still open**
-- **Inbox Ingestor hardening** — atomic writes, `on_moved` handling, stability
-  polling instead of a fixed sleep, bounded retries, regenerating stale markdown,
-  resource limits. Limits are documented above; the fix is the next work item.
+- **Inbox Ingestor resource limits** — no bound on PDF size, memory use, or
+  concurrent conversions. The rest of the original hardening list (atomic
+  writes, `on_moved` handling, stability polling, bounded retries, regenerating
+  stale markdown) shipped July 2026; this is what's left.
 - **Provenance manifest** — per-skill upstream commit SHA and content hash, so
   vendored copies can be verified against their source.
 - **CI** — the installer suite (23 tests) runs locally; it should run on every
