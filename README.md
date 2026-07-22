@@ -252,4 +252,4 @@ over:
 
 The July 2026 audit that prompted v1.1 was thorough and specific, and this repo
 is better for it. Finding a real defect in someone's work and writing it up
-clearly is a favor, not an attack.
+clearly is a favor, not an attack. Thank you GardenerDave over on Discord for the help.
