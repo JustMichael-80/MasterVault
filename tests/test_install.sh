@@ -141,6 +141,22 @@ for l in "$SANDBOX"/skills/*; do
 done
 [ "$BROKEN" -eq 0 ] && ok "all links resolve to a SKILL.md" || bad "$BROKEN broken link(s)"
 
+# 14. claude-math keeps its nested upstream layout.
+reset
+OUT_CM="$("$INSTALL" --list 2>/dev/null || true)"
+if echo "$OUT_CM" | grep -q '^math-unicode.*claude-math/skills/math-unicode'; then
+  ok "finds claude-math from its upstream nested skill layout"
+else
+  bad "MISSED claude-math nested skill layout"
+fi
+
+# 15. claude-math retains its upstream MIT license.
+if [ -f "$REPO_DIR/skills/claude-math/LICENSE" ] && grep -q 'MIT License' "$REPO_DIR/skills/claude-math/LICENSE"; then
+  ok "claude-math retains its upstream MIT license"
+else
+  bad "claude-math is missing its upstream MIT license"
+fi
+
 # --- Discovery across real-world layouts ----------------------------------
 # The repo's own skills/ only contains layouts 1 and 3. Without these fixtures
 # a discovery bug in layout 2 or 4 passes silently — which is exactly how a
@@ -148,7 +164,7 @@ done
 
 FIX="$REPO_DIR/tests/fixtures"
 
-# 14. Dotfolder layout: <repo>/.claude/skills/<name>/
+# 16. Dotfolder layout: <repo>/.claude/skills/<name>/
 reset
 OUT="$("$INSTALL" --from "$FIX" --list 2>/dev/null || true)"
 if echo "$OUT" | grep -q '^alpha-skill' && echo "$OUT" | grep -q '^beta-skill'; then
@@ -157,38 +173,38 @@ else
   bad "MISSED dotfolder layout — the silent-skip bug"
 fi
 
-# 15. Curated layout: <repo>/<name>/SKILL.md with no skills/ level
+# 17. Curated layout: <repo>/<name>/SKILL.md with no skills/ level
 if echo "$OUT" | grep -q '^gamma-skill' && echo "$OUT" | grep -q '^delta-skill'; then
   ok "finds skills in a curated repo folder (no skills/ level)"
 else
   bad "MISSED curated layout"
 fi
 
-# 16. Vendor-internal duplicates are skipped, not collided on.
+# 18. Vendor-internal duplicates are skipped, not collided on.
 if echo "$OUT" | grep -q '^epsilon-skill'; then
   ok "canonical copy of a duplicated skill is found"
 else
   bad "canonical skill lost among vendor duplicates"
 fi
 
-# 17. The CLI-asset duplicate must NOT produce a second entry.
+# 19. The CLI-asset duplicate must NOT produce a second entry.
 N_ALPHA=$(echo "$OUT" | grep -c '^alpha-skill' || true)
 [ "$N_ALPHA" -eq 1 ] && ok "cli/assets duplicate skipped (no collision)" \
                      || bad "cli/assets duplicate not skipped (alpha-skill x$N_ALPHA)"
 
-# 18. plugins/ duplicates must not produce extra entries.
+# 20. plugins/ duplicates must not produce extra entries.
 N_EPS=$(echo "$OUT" | grep -c '^epsilon-skill' || true)
 [ "$N_EPS" -eq 1 ] && ok "plugins/ duplicates skipped" \
                    || bad "vendor duplicates not skipped (epsilon-skill x$N_EPS)"
 
 # --- Verify mode ----------------------------------------------------------
 
-# 19. --verify installs nothing.
+# 21. --verify installs nothing.
 reset
 "$INSTALL" --verify >/dev/null 2>&1 || true
 [ -d "$SANDBOX/skills" ] && bad "--verify created target dir" || ok "--verify installs nothing"
 
-# 20. --verify reports a clean tree after --all.
+# 22. --verify reports a clean tree after --all.
 reset
 "$INSTALL" --all >/dev/null 2>&1
 if "$INSTALL" --verify >/dev/null 2>&1; then
@@ -197,7 +213,7 @@ else
   bad "--verify failed on a tree it just linked"
 fi
 
-# 21. --verify DETECTS a missing skill and exits non-zero.
+# 23. --verify DETECTS a missing skill and exits non-zero.
 #     This is the check whose absence let a whole repo go missing unnoticed.
 rm -f "$SANDBOX/skills/stop-slop"
 if "$INSTALL" --verify >/dev/null 2>&1; then
@@ -209,7 +225,7 @@ else
     || bad "--verify exited non-zero but did not name the missing skill"
 fi
 
-# 22. --verify detects a stale link pointing at the wrong place.
+# 24. --verify detects a stale link pointing at the wrong place.
 reset
 "$INSTALL" --all >/dev/null 2>&1
 rm -f "$SANDBOX/skills/stop-slop"
@@ -217,7 +233,7 @@ ln -s /tmp/wrong-place "$SANDBOX/skills/stop-slop"
 OUT3="$("$INSTALL" --verify 2>&1 || true)"
 echo "$OUT3" | grep -q 'STALE' && ok "--verify detects a stale link" || bad "--verify missed a stale link"
 
-# 23. --verify reports orphans (linked, but no longer in source).
+# 25. --verify reports orphans (linked, but no longer in source).
 reset
 "$INSTALL" --all >/dev/null 2>&1
 ln -s /tmp/nowhere "$SANDBOX/skills/some-removed-skill"

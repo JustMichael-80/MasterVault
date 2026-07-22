@@ -15,8 +15,9 @@ Nothing here is relicensed or presented as original work of this repo.
 | [obra/superpowers](https://github.com/obra/superpowers) | Jesse Vincent | MIT | `skills/superpowers/LICENSE` | brainstorming, dispatching-parallel-agents, executing-plans, finishing-a-development-branch, receiving-code-review, requesting-code-review, subagent-driven-development, systematic-debugging, test-driven-development, using-git-worktrees, using-superpowers, verification-before-completion, writing-plans, writing-skills |
 | [upstash/context7](https://github.com/upstash/context7) | Upstash, Inc. | MIT | `skills/context7/LICENSE` | context7-cli, context7-mcp, find-docs |
 | [hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) | Hardik Pandya | MIT | `skills/stop-slop/LICENSE` | stop-slop |
+| [vladimirrott/claude-math v0.4.0](https://github.com/vladimirrott/claude-math/tree/v0.4.0) | Vladimir Rotariu | MIT | `skills/claude-math/LICENSE` | math-unicode |
 
-23 skills from 4 sources.
+24 skills from 5 sources.
 
 **Note on Anthropic skills:** the five vendored here each ship an Apache-2.0
 `LICENSE.txt`. Anthropic's skills repository is not uniformly Apache-2.0 —
