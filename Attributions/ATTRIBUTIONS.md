@@ -19,6 +19,11 @@ Nothing here is relicensed or presented as original work of this repo.
 
 24 skills from 5 sources.
 
+**Local modification note:** `brainstorming/scripts/server.cjs` is patched in this vendored copy (v1.3) to
+unconditionally disable a default phone-home to `primeradiant.com` that upstream only disables via opt-out
+env var. One line changed (`SUPERPOWERS_TELEMETRY_DISABLED` hardcoded `true`); no other behavior altered.
+This is a modification, not a relicensing — the file is still MIT-licensed per the source row above.
+
 **Note on Anthropic skills:** the five vendored here each ship an Apache-2.0
 `LICENSE.txt`. Anthropic's skills repository is not uniformly Apache-2.0 —
 some skills in that repo (the document-editing ones) are source-available

@@ -109,7 +109,10 @@ const TELEMETRY_DISABLE_ENV_VARS = [
   'DISABLE_TELEMETRY',
   'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC'
 ];
-const SUPERPOWERS_TELEMETRY_DISABLED = TELEMETRY_DISABLE_ENV_VARS.some(name => isTruthyEnv(process.env[name]));
+const SUPERPOWERS_TELEMETRY_DISABLED = true; // Patched in this vendored copy: upstream defaults to loading a
+// remote branding image from primeradiant.com on every use unless one of TELEMETRY_DISABLE_ENV_VARS is set.
+// This copy disables that phone-home unconditionally rather than opt-out. See Attributions/ATTRIBUTIONS.md
+// for the disclosure note. Found during script review, 2026-07-22.
 let ownerPid = process.env.BRAINSTORM_OWNER_PID ? Number(process.env.BRAINSTORM_OWNER_PID) : null;
 
 // Per-session secret key. The companion is reachable by any local browser tab

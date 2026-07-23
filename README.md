@@ -1,4 +1,4 @@
-# MasterVault Template (v1.2)
+# MasterVault Template (v1.3)
 
 A blank, reusable scaffold for orienting an LLM into a project's context at the start of every session.
 
@@ -199,6 +199,16 @@ This repo was independently audited in July 2026 and the findings were, in the
 main, correct. v1.1 fixed the defects that could damage a user's machine or
 misrepresent what's here. What remains is tracked honestly rather than papered
 over:
+
+**New in v1.3**
+- **Skill-discovery step in `_orientation.md`** — a new Step 5 tells any LLM instance following this protocol
+  to check `skills/` and `Attributions/ATTRIBUTIONS.md` for a vendored skill that fits the task before
+  improvising, closing the gap for environments (chat interfaces, non-Claude-Code tools) that don't
+  auto-discover skills natively the way Claude Code does.
+- **Privacy patch to vendored `brainstorming` skill** — its bundled companion server phoned home to a
+  third-party domain (loading a remote branding image on every use) by default upstream, opt-out only.
+  Patched in this vendored copy to disable it unconditionally. One line changed; disclosed in
+  `Attributions/ATTRIBUTIONS.md`. Found via script review before broadly linking all 24 vendored skills.
 
 **New in v1.2**
 - **Timing Log / temporal self-calibration** — a standing TEMPORAL SELF-CALIBRATION

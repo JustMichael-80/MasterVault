@@ -18,6 +18,10 @@
 
 4. **Do not restate context back to the project owner** once both files are read. Orient silently, then proceed to the actual task.
 
+5. **When the task at hand could benefit from a specialized skill** (frontend/UI work, debugging workflows, docs lookup, etc.), check `skills/` and `Attributions/ATTRIBUTIONS.md` for a vendored skill that might apply before improvising from scratch. `ATTRIBUTIONS.md` lists what's vendored, by source and name; if a name looks like a plausible match, read that skill's own `SKILL.md` (under `skills/<source>/<name>/`) for its actual description and instructions before proceeding.
+   - This step matters most for LLM environments that don't natively auto-discover skills the way Claude Code does (e.g. this protocol being read directly in a chat interface, or by a different LLM tool entirely). If your environment already auto-discovers skills on its own, this step is redundant — skip it.
+   - Don't hand-read every skill's full `SKILL.md` up front. Check names/sources first; only open the full file for a genuine candidate match.
+
 ---
 
 ## What this file is NOT
